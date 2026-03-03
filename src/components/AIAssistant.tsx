@@ -4,6 +4,7 @@ import { Bot, Send, Sparkles, Code, Cpu, Zap, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { GoogleGenAI } from "@google/genai";
 import { cn } from '../lib/utils';
+import { useAuth } from '../context/AuthContext';
 
 interface Message {
   role: 'user' | 'ai';
@@ -11,6 +12,7 @@ interface Message {
 }
 
 export const AIAssistant = () => {
+  const { geminiKey: contextKey } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
@@ -35,9 +37,11 @@ export const AIAssistant = () => {
 
     try {
       // @ts-ignore
-      const apiKey = (typeof process !== 'undefined' && process.env.GEMINI_API_KEY) || import.meta.env.VITE_GEMINI_API_KEY;
+      const envKey = (typeof process !== 'undefined' && process.env.GEMINI_API_KEY) || import.meta.env.VITE_GEMINI_API_KEY;
+      const apiKey = contextKey || envKey;
+      
       if (!apiKey) {
-        throw new Error("Gemini API key is not configured.");
+        throw new Error("Gemini API key is not configured. Please add it in Settings.");
       }
 
       const ai = new GoogleGenAI({ apiKey });

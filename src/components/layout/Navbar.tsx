@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Rocket, Menu, X, User, LogIn } from 'lucide-react';
+import { Rocket, Menu, X, User, LogIn, Settings as SettingsIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export const Navbar = () => {
@@ -10,6 +10,7 @@ export const Navbar = () => {
 
   const navLinks = [
     { name: 'Platform', path: '/platform' },
+    { name: 'Projects', path: '/projects' },
     { name: 'Marketplace', path: '/marketplace' },
     { name: 'Simulator', path: '/simulator' },
     { name: 'AI Engine', path: '/ai-engine' },
@@ -25,7 +26,7 @@ export const Navbar = () => {
           <span className="font-display font-bold text-xl tracking-tighter">ALVYON <span className="text-neon-blue">BD</span></span>
         </Link>
         
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/70">
+        <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/70">
           {navLinks.map((link) => (
             <Link 
               key={link.path} 
@@ -41,6 +42,9 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4">
+          <Link to="/settings" className="hidden md:flex items-center gap-2 text-white/40 hover:text-neon-blue transition-all">
+            <SettingsIcon className="w-5 h-5" />
+          </Link>
           <Link to="/login" className="hidden md:flex items-center gap-2 text-sm font-medium hover:text-neon-blue transition-colors">
             <LogIn className="w-4 h-4" /> Login
           </Link>
@@ -50,7 +54,7 @@ export const Navbar = () => {
           >
             Get Started
           </Link>
-          <button className="md:hidden text-white" onClick={() => setIsOpen(!isOpen)}>
+          <button className="lg:hidden text-white" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X /> : <Menu />}
           </button>
         </div>

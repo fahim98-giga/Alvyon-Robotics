@@ -5,7 +5,10 @@ import ReactMarkdown from 'react-markdown';
 import { GoogleGenAI } from "@google/genai";
 import { cn } from '../lib/utils';
 
+import { useAuth } from '../context/AuthContext';
+
 export const AIEngine = () => {
+  const { geminiKey: contextKey } = useAuth();
   const [input, setInput] = useState('');
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,9 +19,11 @@ export const AIEngine = () => {
     setResponse('');
     try {
       // @ts-ignore
-      const apiKey = (typeof process !== 'undefined' && process.env.GEMINI_API_KEY) || import.meta.env.VITE_GEMINI_API_KEY;
+      const envKey = (typeof process !== 'undefined' && process.env.GEMINI_API_KEY) || import.meta.env.VITE_GEMINI_API_KEY;
+      const apiKey = contextKey || envKey;
+      
       if (!apiKey) {
-        throw new Error("Gemini API key is not configured.");
+        throw new Error("Gemini API key is not configured. Please add it in Settings.");
       }
 
       const ai = new GoogleGenAI({ apiKey });
@@ -94,10 +99,19 @@ export const AIEngine = () => {
                 <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest">AI Output Terminal</span>
               </div>
               <div className="flex gap-2">
-                <button className="p-2 rounded-lg hover:bg-white/5 text-white/50 hover:text-white transition-all">
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(response);
+                    alert("Code copied to clipboard!");
+                  }}
+                  className="p-2 rounded-lg hover:bg-white/5 text-white/50 hover:text-white transition-all"
+                >
                   <Copy className="w-4 h-4" />
                 </button>
-                <button className="p-2 rounded-lg hover:bg-white/5 text-white/50 hover:text-white transition-all">
+                <button 
+                  onClick={() => alert("Simulation injection starting...")}
+                  className="p-2 rounded-lg hover:bg-white/5 text-white/50 hover:text-white transition-all"
+                >
                   <Play className="w-4 h-4" />
                 </button>
               </div>

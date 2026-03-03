@@ -8,8 +8,10 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  geminiKey: string | null;
   login: (user: User) => void;
   logout: () => void;
+  setGeminiKey: (key: string) => void;
   isAuthenticated: boolean;
 }
 
@@ -19,6 +21,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('alvyon_user');
     return saved ? JSON.parse(saved) : null;
+  });
+
+  const [geminiKey, setGeminiKeyInternal] = useState<string | null>(() => {
+    return localStorage.getItem('alvyon_gemini_key');
   });
 
   const login = (userData: User) => {
@@ -31,8 +37,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem('alvyon_user');
   };
 
+  const setGeminiKey = (key: string) => {
+    setGeminiKeyInternal(key);
+    localStorage.setItem('alvyon_gemini_key', key);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, geminiKey, login, logout, setGeminiKey, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

@@ -21,11 +21,51 @@
 @layer base {
   body {
     @apply bg-[#050505] text-white font-sans antialiased overflow-x-hidden;
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(188, 19, 254, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 0% 100%, rgba(57, 255, 20, 0.05) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  /* 4D Grid Effect */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(circle at 50% 50%, black 0%, transparent 80%);
+    pointer-events: none;
+    z-index: -1;
+    animation: gridMove 60s linear infinite;
+  }
+
+  @keyframes gridMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 500px 500px; }
   }
 }
 
 .glass {
   @apply bg-white/5 backdrop-blur-xl border border-white/10;
+}
+
+/* 4D Floating Animation */
+.float-4d {
+  animation: float4d 10s ease-in-out infinite;
+}
+
+@keyframes float4d {
+  0%, 100% { transform: translateY(0) rotateX(0) rotateY(0); }
+  25% { transform: translateY(-20px) rotateX(5deg) rotateY(2deg); }
+  50% { transform: translateY(0) rotateX(0) rotateY(-5deg); }
+  75% { transform: translateY(20px) rotateX(-5deg) rotateY(0); }
 }
 
 .neon-border {

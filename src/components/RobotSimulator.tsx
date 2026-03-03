@@ -2,11 +2,50 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Play, Pause, RotateCcw, Terminal } from 'lucide-react';
 
-export const RobotSimulator = () => {
+export const RobotSimulator = ({ code, isExecuting }: { code?: string, isExecuting?: boolean }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isRunning, setIsRunning] = useState(false);
   const robotRef = useRef<THREE.Group | null>(null);
   const [logs, setLogs] = useState<string[]>(["Simulator initialized...", "Waiting for code..."]);
+  const [commands, setCommands] = useState<any[]>([]);
+  const [currentCommandIndex, setCurrentCommandIndex] = useState(-1);
+
+  // Parse code into commands
+  useEffect(() => {
+    if (isExecuting && code) {
+      const lines = code.split('\n');
+      const newCommands: any[] = [];
+      
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('moveForward')) {
+          const val = parseFloat(trimmed.match(/\(([^)]+)\)/)?.[1] || '1');
+          newCommands.push({ type: 'move', value: val });
+        } else if (trimmed.startsWith('moveBackward')) {
+          const val = parseFloat(trimmed.match(/\(([^)]+)\)/)?.[1] || '1');
+          newCommands.push({ type: 'move', value: -val });
+        } else if (trimmed.startsWith('turnLeft')) {
+          const val = parseFloat(trimmed.match(/\(([^)]+)\)/)?.[1] || '90');
+          newCommands.push({ type: 'rotate', value: (val * Math.PI) / 180 });
+        } else if (trimmed.startsWith('turnRight')) {
+          const val = parseFloat(trimmed.match(/\(([^)]+)\)/)?.[1] || '90');
+          newCommands.push({ type: 'rotate', value: -(val * Math.PI) / 180 });
+        } else if (trimmed.startsWith('stop')) {
+          newCommands.push({ type: 'stop' });
+        } else if (trimmed.startsWith('delay')) {
+          const val = parseInt(trimmed.match(/\(([^)]+)\)/)?.[1] || '1000');
+          newCommands.push({ type: 'delay', value: val });
+        }
+      });
+
+      if (newCommands.length > 0) {
+        setCommands(newCommands);
+        setCurrentCommandIndex(0);
+        setIsRunning(true);
+        setLogs(prev => [...prev, "Executing script...", `Found ${newCommands.length} commands.`]);
+      }
+    }
+  }, [isExecuting, code]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -20,19 +59,26 @@ export const RobotSimulator = () => {
     containerRef.current.appendChild(renderer.domElement);
 
     // Grid helper
-    const grid = new THREE.GridHelper(20, 20, 0x00f2ff, 0x222222);
+    const grid = new THREE.GridHelper(40, 40, 0x00f2ff, 0x111111);
     scene.add(grid);
 
     // Robot body (Simplified)
     const robot = new THREE.Group();
     
     const bodyGeom = new THREE.BoxGeometry(1, 0.5, 1.5);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.2 });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.9, roughness: 0.1 });
     const body = new THREE.Mesh(bodyGeom, bodyMat);
     robot.add(body);
 
+    // Add some "tech" details to the robot
+    const sensorGeom = new THREE.BoxGeometry(0.4, 0.2, 0.2);
+    const sensorMat = new THREE.MeshStandardMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 2 });
+    const sensor = new THREE.Mesh(sensorGeom, sensorMat);
+    sensor.position.set(0, 0.2, 0.7);
+    robot.add(sensor);
+
     const wheelGeom = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 32);
-    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x00f2ff });
+    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
     
     const wheels = [
       { x: 0.6, y: -0.1, z: 0.5 },
@@ -53,29 +99,50 @@ export const RobotSimulator = () => {
     robotRef.current = robot;
 
     // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 10, 5);
-    scene.add(directionalLight);
+    
+    const pointLight = new THREE.PointLight(0x00f2ff, 2, 10);
+    pointLight.position.set(0, 2, 0);
+    scene.add(pointLight);
 
-    camera.position.set(3, 3, 5);
+    camera.position.set(5, 5, 8);
     camera.lookAt(0, 0, 0);
 
-    let frame = 0;
-    const animate = () => {
+    let lastTime = 0;
+    const animate = (time: number) => {
+      const deltaTime = (time - lastTime) / 1000;
+      lastTime = time;
+      
       requestAnimationFrame(animate);
       
-      if (isRunning && robotRef.current) {
-        frame += 0.02;
-        robotRef.current.position.z += Math.sin(frame) * 0.05;
-        robotRef.current.rotation.y += Math.cos(frame) * 0.01;
+      if (isRunning && robotRef.current && currentCommandIndex >= 0 && currentCommandIndex < commands.length) {
+        const cmd = commands[currentCommandIndex];
+        
+        if (cmd.type === 'move') {
+          const moveStep = cmd.value * deltaTime * 2;
+          robotRef.current.translateZ(moveStep);
+          // Simple completion check (this is a mock simulation)
+          if (Math.random() > 0.99) setCurrentCommandIndex(prev => prev + 1);
+        } else if (cmd.type === 'rotate') {
+          const rotateStep = cmd.value * deltaTime;
+          robotRef.current.rotation.y += rotateStep;
+          if (Math.random() > 0.98) setCurrentCommandIndex(prev => prev + 1);
+        } else if (cmd.type === 'delay') {
+          // Delay is handled by a timeout usually, but here we just skip after some time
+          if (Math.random() > 0.95) setCurrentCommandIndex(prev => prev + 1);
+        } else if (cmd.type === 'stop') {
+          setCurrentCommandIndex(prev => prev + 1);
+        }
+      } else if (currentCommandIndex >= commands.length && isRunning) {
+        setIsRunning(false);
+        setLogs(prev => [...prev, "Execution complete."]);
       }
       
       renderer.render(scene, camera);
     };
 
-    animate();
+    animate(0);
 
     const handleResize = () => {
       if (!containerRef.current) return;
@@ -90,7 +157,7 @@ export const RobotSimulator = () => {
       window.removeEventListener('resize', handleResize);
       containerRef.current?.removeChild(renderer.domElement);
     };
-  }, [isRunning]);
+  }, [isRunning, commands, currentCommandIndex]);
 
   const toggleSimulation = () => {
     setIsRunning(!isRunning);

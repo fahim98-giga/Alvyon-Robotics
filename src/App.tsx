@@ -9,6 +9,9 @@ import { AIEngine } from './pages/AIEngine';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
+import { Settings } from './pages/Settings';
+import { Projects } from './pages/Projects';
+import { ProjectDetail } from './pages/ProjectDetail';
 
 export default function App() {
   return (
@@ -24,6 +27,9 @@ export default function App() {
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<Signup />} />
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="projects" element={<Projects />} />
+            <Route path="projects/:id" element={<ProjectDetail />} />
           </Route>
         </Routes>
       </Router>

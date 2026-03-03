@@ -20,7 +20,7 @@ interface CodeListing {
   code_content: string;
 }
 
-const ProductCard = ({ product }: { product: Product }) => (
+const ProductCard = ({ product, onPurchase }: { product: Product, onPurchase: (id: number, type: string, amount: number) => void }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     whileInView={{ opacity: 1, scale: 1 }}
@@ -43,7 +43,10 @@ const ProductCard = ({ product }: { product: Product }) => (
       <p className="text-white/40 text-xs mb-6 line-clamp-2">{product.description}</p>
       <div className="flex items-center justify-between">
         <span className="text-xl font-display font-black text-neon-blue">৳{Math.round(product.price * 115)}</span>
-        <button className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-neon-blue hover:text-black transition-all border border-white/10">
+        <button 
+          onClick={() => onPurchase(product.id, 'product', Math.round(product.price * 115))}
+          className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-neon-blue hover:text-black transition-all border border-white/10"
+        >
           <Plus className="w-5 h-5" />
         </button>
       </div>
@@ -55,6 +58,7 @@ export const Marketplace = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [codeListings, setCodeListings] = useState<CodeListing[]>([]);
   const [search, setSearch] = useState('');
+  const [purchaseStatus, setPurchaseStatus] = useState<{ success: boolean, message: string } | null>(null);
 
   useEffect(() => {
     fetch('/api/products')
@@ -68,9 +72,39 @@ export const Marketplace = () => {
       .catch(err => console.error(err));
   }, []);
 
+  const handlePurchase = async (itemId: number, itemType: string, amount: number) => {
+    try {
+      const res = await fetch('/api/marketplace/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId, itemType, amount, userId: 1 }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPurchaseStatus({ success: true, message: `Successfully purchased! Order ID: ${data.orderId}` });
+        setTimeout(() => setPurchaseStatus(null), 5000);
+      }
+    } catch (error) {
+      setPurchaseStatus({ success: false, message: "Purchase failed. Please try again." });
+      setTimeout(() => setPurchaseStatus(null), 5000);
+    }
+  };
+
   return (
     <div className="pt-32 pb-20 px-6 min-h-screen">
       <div className="max-w-7xl mx-auto">
+        {purchaseStatus && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl border ${
+              purchaseStatus.success ? 'bg-neon-green/10 border-neon-green text-neon-green' : 'bg-red-500/10 border-red-500 text-red-500'
+            } backdrop-blur-md shadow-2xl`}
+          >
+            {purchaseStatus.message}
+          </motion.div>
+        )}
+
         <div className="flex flex-col md:flex-row items-center justify-between mb-16 gap-8">
           <div>
             <h1 className="text-4xl md:text-6xl font-display font-black tracking-tighter mb-4 uppercase">ROBOTICS <span className="text-neon-blue">MARKETPLACE</span></h1>
@@ -87,7 +121,10 @@ export const Marketplace = () => {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <button className="glass p-3 rounded-2xl border-white/10 hover:text-neon-blue transition-all">
+            <button 
+              onClick={() => alert("Filtering system initializing... Category selection will be available in the next update.")}
+              className="glass p-3 rounded-2xl border-white/10 hover:text-neon-blue transition-all"
+            >
               <Filter className="w-5 h-5" />
             </button>
           </div>
@@ -100,7 +137,7 @@ export const Marketplace = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {products.filter(p => p.name.toLowerCase().includes(search.toLowerCase())).map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product.id} product={product} onPurchase={handlePurchase} />
             ))}
           </div>
         </div>
@@ -131,7 +168,10 @@ export const Marketplace = () => {
                 <p className="text-white/40 text-sm mb-8 leading-relaxed">{listing.description}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-2xl font-display font-black text-white">৳{Math.round(listing.price * 115)}</span>
-                  <button className="bg-neon-purple text-white px-6 py-3 rounded-2xl text-sm font-bold shadow-[0_0_15px_rgba(188,19,254,0.3)] hover:brightness-110 transition-all">
+                  <button 
+                    onClick={() => handlePurchase(listing.id, 'code', Math.round(listing.price * 115))}
+                    className="bg-neon-purple text-white px-6 py-3 rounded-2xl text-sm font-bold shadow-[0_0_15px_rgba(188,19,254,0.3)] hover:brightness-110 transition-all"
+                  >
                     Buy Code
                   </button>
                 </div>

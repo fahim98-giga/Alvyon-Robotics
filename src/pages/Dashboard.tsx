@@ -12,8 +12,10 @@ import {
   TrendingUp,
   Clock,
   ExternalLink,
-  Zap
+  Zap,
+  ChevronRight
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '../lib/utils';
 
 export const Dashboard = () => {
@@ -26,13 +28,19 @@ export const Dashboard = () => {
             <p className="text-white/40">Here's what's happening with your robotics projects.</p>
           </div>
           <div className="flex items-center gap-4">
-            <button className="glass p-3 rounded-2xl border-white/10 relative">
+            <Link 
+              to="/settings"
+              className="glass p-3 rounded-2xl border-white/10 relative"
+            >
               <Bell className="w-5 h-5" />
               <div className="absolute top-2 right-2 w-2 h-2 bg-neon-blue rounded-full shadow-[0_0_5px_rgba(0,242,255,0.8)]" />
-            </button>
-            <button className="bg-neon-blue text-black px-6 py-3 rounded-2xl font-black shadow-[0_0_20px_rgba(0,242,255,0.3)] hover:brightness-110 transition-all flex items-center gap-2">
+            </Link>
+            <Link 
+              to="/projects"
+              className="bg-neon-blue text-black px-6 py-3 rounded-2xl font-black shadow-[0_0_20px_rgba(0,242,255,0.3)] hover:brightness-110 transition-all flex items-center gap-2"
+            >
               <Plus className="w-4 h-4" /> New Project
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -61,15 +69,19 @@ export const Dashboard = () => {
             <div className="glass rounded-[40px] border-white/5 overflow-hidden">
               <div className="p-8 border-b border-white/10 flex items-center justify-between">
                 <h2 className="font-display font-bold text-xl uppercase tracking-tighter">Recent Projects</h2>
-                <button className="text-xs font-bold text-neon-blue uppercase tracking-widest hover:underline">View All</button>
+                <Link to="/projects" className="text-xs font-bold text-neon-blue uppercase tracking-widest hover:underline">View All</Link>
               </div>
               <div className="divide-y divide-white/5">
                 {[
-                  { name: 'Autonomous Maze Solver', tech: 'Arduino', status: 'In Progress', date: '2h ago' },
-                  { name: 'ESP32 Smart Home Hub', tech: 'ESP32', status: 'Completed', date: '1d ago' },
-                  { name: 'Robotic Arm Controller', tech: 'Raspberry Pi', status: 'In Progress', date: '3d ago' },
+                  { id: 'quadruped-v1', name: 'Autonomous Quadruped', tech: 'ESP32', status: 'In Progress', date: '2h ago' },
+                  { id: 'industrial-arm-x', name: 'Precision Industrial Arm', tech: 'ROS2', status: 'Completed', date: '1d ago' },
+                  { id: 'autonomous-drone-bd', name: 'Sky-Scout Drone', tech: 'Pixhawk', status: 'In Progress', date: '3d ago' },
                 ].map((project, i) => (
-                  <div key={i} className="p-6 flex items-center justify-between hover:bg-white/5 transition-all group">
+                  <Link 
+                    key={i} 
+                    to={`/projects/${project.id}`}
+                    className="p-6 flex items-center justify-between hover:bg-white/5 transition-all group border-b border-white/5 last:border-0"
+                  >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-neon-blue/50 transition-all">
                         <Code className="w-6 h-6 text-white/20 group-hover:text-neon-blue transition-all" />
@@ -88,11 +100,9 @@ export const Dashboard = () => {
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">{project.date}</span>
-                      <button className="p-2 rounded-lg hover:bg-white/10 text-white/30 hover:text-white transition-all">
-                        <ExternalLink className="w-4 h-4" />
-                      </button>
+                      <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white transition-all" />
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -121,7 +131,10 @@ export const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              <button className="w-full mt-8 py-4 rounded-2xl border border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-all">
+              <button 
+                onClick={() => alert("Redirecting to subscription plans...")}
+                className="w-full mt-8 py-4 rounded-2xl border border-white/10 text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-all"
+              >
                 Upgrade Plan
               </button>
             </div>
@@ -130,9 +143,12 @@ export const Dashboard = () => {
               <Zap className="w-8 h-8 text-neon-blue mb-6" />
               <h3 className="font-display font-bold text-lg mb-2">Pro Feature</h3>
               <p className="text-white/40 text-xs mb-6 leading-relaxed">Unlock advanced AI code optimization and multi-robot simulation.</p>
-              <button className="bg-white text-black px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:brightness-110 transition-all">
+              <Link 
+                to="/settings"
+                className="bg-white text-black px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:brightness-110 transition-all inline-block text-center"
+              >
                 Try Pro Free
-              </button>
+              </Link>
             </div>
           </div>
         </div>
