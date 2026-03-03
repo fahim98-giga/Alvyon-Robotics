@@ -1,0 +1,5 @@
+{
+  "name": "Alvyon Robotics BD",
+  "description": "Bangladesh's premier AI-powered robotics platform. Design, simulate, and build the future of robotics in Bangladesh.",
+  "requestFramePermissions": ["camera", "microphone"]
+}
